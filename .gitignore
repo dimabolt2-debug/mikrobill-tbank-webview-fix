@@ -1,0 +1,10 @@
+*.bak
+*.log
+.env
+.env.*
+config.php
+MikroBILL.xml
+payin/
+backups/
+outputs/
+
