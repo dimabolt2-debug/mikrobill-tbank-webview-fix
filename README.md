@@ -1,6 +1,9 @@
 # MikroBILL T-Bank WebView fix
 
-Private minimal repository for the MikroBILL T-Bank payment redirect correction.
+Public reference repository for the MikroBILL T-Bank payment redirect correction.
+
+This is an independent community fix and is not an official MikroBILL or T-Bank
+project. Review the diff and keep a backup before applying it to another server.
 
 - `main` contains the original files captured before the change.
 - `codex/tbank-webview-fix` contains the tested same-tab and server-side Init patch.
