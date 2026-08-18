@@ -3,12 +3,21 @@
 	require('./template/functions.php');
 	
 	session_start();
+	if (empty($_SESSION['auth'])) {
+		header('Location: login.php', true, 303);
+		exit();
+	}
 	
 	echo '<div id="redirect">Redirecting...</div>';
 	
 	$strings=$GLOBALS['strings'];
 
-	$paysize=str_replace(',','.',$_REQUEST['paysize']);
+	$paysize=str_replace(',','.',(string)($_REQUEST['paysize'] ?? ''));
+	if (!is_numeric($paysize) || (float)$paysize <= 0) {
+		http_response_code(400);
+		exit('Некорректная сумма платежа.');
+	}
+	$paysize=number_format((float)$paysize, 2, '.', '');
 	$shortguid=$_SESSION['shortguid'];
 	
 	$Lng='ru';
@@ -103,14 +112,14 @@
  <head>
   <meta charset="UTF-8">
   <style>.tinkoffPayRow{display:block;margin:1%;width:160px;}</style>
-  <script src="https://securepay.tinkoff.ru/html/payForm/js/tinkoff_v2.js"></script>
+  <script src="https://securepay.tinkoff.ru/html/payForm/js/tinkoff_v2.js" onerror="document.getElementById('redirect').innerHTML='Не удалось загрузить модуль оплаты Т-Банка. Вернитесь назад и повторите попытку в Safari или Chrome.';"></script>
   <link rel="stylesheet" type="text/css" href="./template/templates/sn/css/style.css">
  </head>
  <body style="background:transparent;margin: 0;">
  <form name="TinkoffPayForm" id="TinkoffPay" onsubmit="pay(this); return false;">
 	<input class="tinkoffPayRow" type="hidden" name="amount" id="amount" required value="<?php echo $paysize; ?>">
 	<input class="tinkoffPayRow" type="hidden" name="terminalkey" value="<?php echo $terminalkey; ?>">
-	<input class="tinkoffPayRow" type="hidden" name="frame" value="true">
+	<input class="tinkoffPayRow" type="hidden" name="frame" value="false">
 	<input class="tinkoffPayRow" type="hidden" name="language" value="<?php echo $Lng; ?>">
     <input class="tinkoffPayRow" type="hidden" placeholder="Номер заказа" name="order" value="<?php echo ($order_id); ?>">
     <input class="tinkoffPayRow" type="hidden" placeholder="Описание заказа" name="description" value="MB_<?php echo $shortguid; ?>">
@@ -125,6 +134,25 @@
 	PaymntToLog($TinkoffID,$order_id);
 ?>
 <script type="text/javascript">
-	pay(document.getElementById('TinkoffPay'));
-	document.getElementById('redirect').innerHTML='';
+	(function () {
+		var redirectStatus = document.getElementById('redirect');
+		var failureMessage = 'Не удалось открыть форму оплаты. <a href="tinkoff.php">Вернуться и повторить</a>. Если кабинет открыт во встроенном браузере, попробуйте Safari или Chrome.';
+		var redirectTimeout = window.setTimeout(function () {
+			if (redirectStatus) {
+				redirectStatus.innerHTML = failureMessage;
+			}
+		}, 15000);
+
+		try {
+			if (typeof window.pay !== 'function') {
+				throw new Error('T-Bank payment module is unavailable');
+			}
+			window.pay(document.getElementById('TinkoffPay'));
+		} catch (error) {
+			window.clearTimeout(redirectTimeout);
+			if (redirectStatus) {
+				redirectStatus.innerHTML = failureMessage;
+			}
+		}
+	})();
 </script>

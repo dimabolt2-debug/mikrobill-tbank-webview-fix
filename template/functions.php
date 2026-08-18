@@ -1608,9 +1608,10 @@ function show_base_info()
 		
 		
 		if (strlen($PayPage)>0){
+			$PaymentFormTarget = ($PayPage === 'tinkoff.php') ? '' : ' target="_blank"';
 		
 			$Pay2='<div class="four PayDiv" style="height:32px; padding: 2px; margin-bottom: 10px; border: 2px solid #252525; border-radius: 2px; position: absolute; bottom: 0;">
-						<form method="POST" action="'.$PayPage.'" target="_blank">
+						<form method="POST" action="'.$PayPage.'"'.$PaymentFormTarget.'>
 							<table>
 								<tr>
 									<td>
@@ -1629,7 +1630,7 @@ function show_base_info()
 									</td>
 									<td>
 										
-										<button class="PayButton" type="submit" name="billme" style="display: inline-block; margin-left:6px;" onClick="if (isTelegramWebApp()){alert(\''.$strings[603].'\');return false;}document.getElementById(\'paysize\').value=document.getElementById(\'sum\').value;" onsubmit="return false;">'.$strings[218].'</button>
+										<button class="PayButton" type="submit" name="billme" style="display: inline-block; margin-left:6px;" onClick="document.getElementById(\'paysize\').value=document.getElementById(\'sum\').value;" onsubmit="return false;">'.$strings[218].'</button>
 										
 										<div class="DispAtWide">&nbsp&nbsp ' . $PaymentGateway. '</div>
 									</td>
@@ -1974,7 +1975,7 @@ function show_base_info()
 						</div>
 						<div class="head" style="justify-content: center;">'.$GLOBALS['WEB_Basement'].'</div>
 						
-						<body onload="if (isTelegramWebApp()){document.getElementById(\'TelegramAlert\').style.display=\'block\';BlockPayment();}">
+						<body>
 						
 						<script type="text/javascript">
 							
@@ -6703,7 +6704,7 @@ function TinkoffMoney()
 		
 		$_POST['sum'] = GetSummWithComission($_POST['sum'],(float)$GLOBALS['Tinkoff_Commission'],(float)$GLOBALS['Tinkoff_Commission2']);
 		
-		header('Location: tinkoff2.php?paysize='.$_POST['sum']);exit();
+		header('Location: tinkoff2.php?paysize='.rawurlencode((string)$_POST['sum']), true, 303);exit();
 		
 	} else {
 		
@@ -6750,7 +6751,7 @@ function TinkoffMoney()
 					<div class="h3 m4">'.$result['page_title'].'</div>
 					<div class="m2">'.sprintf($strings[443],'Tinkoff').'</div>
 					<div class="i m3">'.$strings[220].':</div>
-					<form method="POST" name="sumform" target="_blank">
+					<form method="POST" name="sumform">
 						<div class="m2">
 							<input type="text" name="sum" id="sum" value="'.$allCost.'" class="pay"/> '.$GLOBALS['curr'].$comm2.'
 						</div>
